@@ -33,7 +33,8 @@
                             type 'string is default (possible values include 'string 'number 'boolean)
                             label will be set to :id if not provided
                             role is optional.")
-   (rows :initarg :data :accessor data :accessor rows
+   (rows :initarg :rows :accessor rows
+         :initarg :data :accessor data 
          :initform nil)
    (custom-properties :initarg :custom-properties :accessor custom-properties)))
 
@@ -102,7 +103,7 @@
   (format stream "{~@[cols: [~{~a~^,~}],~]rows: [~{~a~^,~}]}"
           (when (columns table)
             (loop for c in (columns table)
-                  collect (format nil "{id: ~s,type: ~s,label: ~s~@[,role: ~s~]}"
+                  collect (format nil "{id: '~a',type: '~a',label: '~a'~@[,role: '~a'~]}"
                                   (first c)
                                   (string-downcase (symbol-name (second c)))
                                   (third c)
@@ -121,7 +122,7 @@
                     else if (member type '(date date-time time-of-dat))
                     collect
                     (format nil
-                            "Date(~a,~a,~a~@[,~a~]~@[,~a~]~@[,~a~])"
+                            "'Date(~a,~a,~a~@[,~a~]~@[,~a~]~@[,~a~])'"
                             (cdr (assoc :year entry))
                             (cdr (assoc :month entry))
                             (cdr (assoc :day entry))
@@ -135,8 +136,8 @@
 ;; dynamic data sources
 
 (defclass dynamic-data-source (data-table)
-  ((id :initarg :id :accessor id :initform (format nil "~a" (make-id 'data-source))
-       :documentation "some id used for storing and querying data. This should be a string")
+  ((id :initarg :id :accessor id :initform (format nil "~(~a~)" (make-id 'data-source))
+       :documentation "some id used for storing and querying data. This should be a lowercase string")
    (sig :initarg :sig :accessor sig
         :initform (get-new-sig)
         :documentation "this should change everytime data is updated in the table
@@ -145,7 +146,7 @@
                      :accessor refresh-interval :initform 1
                      :documentation "how often the server should poll for this data")))
    
-(defparameter *dynamic-data-sources* (make-hash-table :test #'equalp))
+(defparameter *dynamic-data-sources* (make-hash-table :test 'equalp))
 
 (defun add-dynamic-data-source (data-source)
   (declare (type dynamic-data-source data-source))
@@ -153,7 +154,11 @@
         data-source))
 
 (defun reset-dynamic-data-sources ()
-  (setf *dynamic-data-sources* (make-hash-table)))
+  (setf *dynamic-data-sources* (make-hash-table :test 'equalp)))
+
+(defun update-dynamic-data-source (data-source)
+  (setf (sig (gethash (id data-source) *dynamic-data-sources*))
+        (get-new-sig)))
 
 (defun handle-request-dynamic-data-sources (data-id tqx)
   "handles a request by the client and generates response string
@@ -171,20 +176,20 @@
          (data (gethash data-id *dynamic-data-sources*)))
     (cond
      ((null data) ;; data with id not found
-      (format nil "~a({status:\"error\",version:0.6~@[,reqId:~a~],errors:[{reason:\"unknown_data_source_id\",message:\"could not find data source with data-id ~a\"}]})"
+      (format nil "~a({status:'error',version:0.6~@[,reqId:~a~],errors:[{reason:'unknown_data_source_id',message:'could not find data source with data-id ~a'}]})"
               response-handler
               req-id
               data-id))
      ((and (not (null sig)) ;; sig in request and different from sig in source
            (equal (format nil "~d" (sig data))
                   sig))
-      (format nil "~a({status:\"error\",version:0.6~@[,reqId:~a~],errors:[{reason:'not_modified',message:'Data not modified'}],sig:~a})"
+      (format nil "~a({status:'error',version:0.6~@[,reqId:~a~],errors:[{reason:'not_modified',message:'Data not modified'}],sig:~a})"
               response-handler
               req-id
               sig))
      (t ;; all other cases
         (let ((s (make-string-output-stream)))
-          (format s "~a({status:\"ok\",version:0.6~@[,reqId:~a~],sig:~a,table:~a})"
+          (format s "~a({status:'ok',version:0.6~@[,reqId:~a~],sig:~a,table:~a})"
                   response-handler
                   req-id
                   (sig data)

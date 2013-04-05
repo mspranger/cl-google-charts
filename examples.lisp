@@ -79,7 +79,7 @@
                                       ("vAxis" . (:obj ("title" . "Fertility Rate")))
                                       ("width" . 600)
                                       ("height" . 600))))
-  
+               
            (chart->html
             (make-instance 'bubble-chart
                            :data-source '(("ID" "X" "Y" "Temperatur")
@@ -190,7 +190,6 @@
                                                   ("vAxis" . (:obj ("title" . "Cups")("minValue" . 0)("maxValue" . 15)))
                                                   ("width" . 500)
                                                   ("height" . 500))))
-
            ;; stepped-area-chart
            "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/steppedareachart\" target=\"_blank\">SteppedAreaChart (stepped-area-chart)</a></h2>"
            (chart->html (make-instance 'stepped-area-chart
@@ -199,12 +198,12 @@
                                                 ("Ralph Thomas (1959)"     6.9         6.5)
                                                 ("Don Sharp (1978)"        6.5         6.4)
                                                 ("James Hawes (2008)"      4.4         6.2))
-                                       :options '(("title" . "The decline of 'The 39 Steps'")
+                                       :options '(("title" . "The decline of \\'The 39 Steps\\'")
                                                   ("vAxis" . (:obj ("title" . "Accumulated Rating")("minValue" . 0)("maxValue" . 15)))
                                                   ("isStacked" . t))))
 
            ;; TODO: add table
-  
+              
            ;; tree
            "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/treemap\" target=\"_blank\">TreeMap (tree-map)</a></h2>"
            (chart->html (make-instance 'tree-map
@@ -242,7 +241,55 @@
                                                   ("maxColor" . "#0d0")
                                                   ("headerHeight" . 15)
                                                   ("fontColor" . "black")
-                                                  ("showScale" . t)))))))
+                                                  ("showScale" . t))))
+
+           ;; motion-chart
+           "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/motionchart\" target=\"_blank\">MotionChart (motion-chart)</a></h2>"
+           (chart->html (make-instance 'motion-chart
+                                       :data 
+                                       (make-instance 'data-table
+                                                      :columns '(("Fruit" string)("Data" date)("Sales" number)("Expenses" number)("Location" string))
+                                                      :rows '(("Apples"  ((:year . 1988)(:month . 0)(:day . 1)) 1000 300 "East")
+                                                              ("Oranges" ((:year . 1988)(:month . 0)(:day . 1)) 1150 200 "West")
+                                                              ("Bananas" ((:year . 1988)(:month . 0)(:day . 1)) 300  250 "West")
+                                                              ("Apples"  ((:year . 1989)(:month . 6)(:day . 1)) 1200 400 "East")
+                                                              ("Oranges" ((:year . 1989)(:month . 6)(:day . 1)) 750  150 "West")
+                                                              ("Bananas" ((:year . 1989)(:month . 6)(:day . 1)) 788  617 "West")))))
+
+
+           ;; intensity-map
+           "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/intensitymap\" target=\"_blank\">IntensityMap (intensity-map)</a></h2>"
+           (chart->html
+            (make-instance 'intensity-map
+                           :data (make-instance 'data-table
+                                                :data '(("Country" "Population (mil)" "Area (km2)")
+                                                        ("CN"            1324           9640821)
+                                                        ("IN"            1133           3287263)
+                                                        ("US"            304            9629091)
+                                                        ("ID"            232            1904569)
+                                                        ("BR"            187            8514877)))))
+           ;; annotated-time-line
+           "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/annotatedtimeline\" target=\"_blank\">AnnotatedTimeLine (annotated-time-line)</a></h2>"
+           (chart->html
+            (make-instance 'annotated-time-line
+                           :data 
+                           (make-instance 'data-table
+                                          :columns '(("Date" date)
+                                                     ("Sold Pencils" number)
+                                                     ("title1" string)
+                                                     ("text1" string)
+                                                     ("Sold Pens" number)
+                                                     ("title2" string)
+                                                     ("text2" string))
+                                          :rows
+                                          '((((:year . 2008)(:month . 1)(:day . 1)) 30000 :undefined :undefined 40645 :undefined :undefined)
+                                            (((:year . 2008)(:month . 1)(:day . 2)) 14045 :undefined :undefined 20374 :undefined :undefined)
+                                            (((:year . 2008)(:month . 1)(:day . 3)) 55022 :undefined :undefined 50766 :undefined :undefined)
+                                            (((:year . 2008)(:month . 1)(:day . 4)) 75284 :undefined :undefined 14334 "Out of Stock""Ran out of stock on pens at 4pm")
+                                            (((:year . 2008)(:month . 1)(:day . 5)) 41476 "Bought Pens""Bought 200k pens" 66467 :undefined :undefined)
+                                            (((:year . 2008)(:month . 1)(:day . 6)) 33322 :undefined :undefined 39463 :undefined :undefined))))
+            :style "width: 700px; height: 240px;"))))
+ 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; export dynamic charts 

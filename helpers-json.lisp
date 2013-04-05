@@ -32,7 +32,7 @@
   (:documentation "Writes the given object to json in a generic way."))
 
 (defmethod to-json ((string string) &key stream)
-  (format stream "\"~{~a~}\""
+  (format stream "'~{~a~}'"
           (loop for char across string
                 collect (case char
                           (#\newline  "\\n")
@@ -77,11 +77,14 @@
 (defmethod to-json ((false (eql :n)) &key stream)
   (format stream "null"))
 
+(defmethod to-json ((false (eql :undefined)) &key stream)
+  (format stream "undefined"))
+
 (defun object-to-json (list &key stream)
   (format stream "{~{~{~A:~A~}~^,~}}"
 	  (loop for item in list collect
-                (list (to-json (car item) :stream stream)
-                      (to-json (cdr item) :stream stream)))))
+                (list (to-json (car item))
+                      (to-json (cdr item))))))
 
 (defun list-to-json (list &key stream)
   (format stream "[~{~A~^,~}]"

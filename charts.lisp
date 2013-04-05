@@ -88,6 +88,15 @@
 (defclass tree-map (chart)
   ())
 
+(defclass motion-chart (chart)
+  ())
+
+(defclass annotated-time-line (chart)
+  ())
+
+(defclass intensity-map (chart)
+  ())
+
 ;;;; (make-id)
 ;;;; (jsown::object-to-json '(("theme" . "test")
 ;;;;                          ("chartArea.top" . 12)

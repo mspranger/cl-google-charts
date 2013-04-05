@@ -28,7 +28,7 @@
 
 (defparameter *google-api-url* "http://www.google.com/jsapi") 
 
-(defparameter *google-chart-init-js* "google.load('visualization', '1', {'packages': ['table', 'corechart', 'geochart','gauge','treemap']});")
+(defparameter *google-chart-init-js* "google.load('visualization', '1', {'packages': ['table', 'corechart', 'geochart','gauge','treemap', 'motionchart','intensitymap','orgchart','annotatedtimeline']});")
 
 (defun get-head-html (&key stream)
   "Include the code generated from this function in the head of your html page
@@ -41,6 +41,7 @@
 ;; (get-head-html)
 
 (defun chart->html (chart &key stream
+                          style
                           (url *dynamic-data-source-url*))
   "generates a div and javascript that loads the chart, returns a string
    behaves differently for dynamic or static data sources
@@ -55,19 +56,18 @@
                      (object-to-json (options chart))))))
     (if (typep (data chart) 'dynamic-data-source)
       ;; dynamic graph
-      (format stream "<div id='~a'></div>
+      (format stream "<div id='~a' ~@[style='~a'~]></div>
                    <script type=\"text/javascript\">
                      var googleGraphApiQuery = new google.visualization.Query('~a?data-id=~a'); googleGraphApiQuery.setRefreshInterval(~a); googleGraphApiQuery.send(function (response) { if (response.isError()) { alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage()); return; } new google.visualization.~a(document.getElementById('~a')).draw(response.getDataTable()~@[,~a~]); });</script>"
-              (id chart) url
+              (id chart) style url
               (id (data chart))
               (refresh-interval (data chart))
               chart-name
               (id chart)
               options)
       ;; static graph
-      (format stream "<div id='~a'></div><script type=\"text/javascript\">new google.visualization.~a(document.getElementById('~a')).draw(new google.visualization.DataTable(~a)~@[,~a~]);</script>"
-              (id chart)
-              chart-name
+      (format stream "<div id='~a' ~@[style='~a'~]></div><script type=\"text/javascript\">new google.visualization.~a(document.getElementById('~a')).draw(new google.visualization.DataTable(~a)~@[,~a~]);</script>"
+              (id chart) style chart-name
               (id chart)
               (to-json (data chart))
               options))))
