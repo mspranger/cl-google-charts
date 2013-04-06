@@ -26,15 +26,15 @@
 (defpackage :cl-google-charts
   (:documentation "A package for support of the google charts api (js)")
   (:use :common-lisp :hunchentoot)
-  (:export
-   :data-table :dynamic-data-source :chart->html
-   :columns :rows
-   :date
-   :add-dynamic-data-source :reset-dynamic-data-sources :update-dynamic-data-source
+  (:export :date 
+   :data-table :columns :rows :data-id
+   :dynamic-data-source :add-dynamic-data-source :reset-dynamic-data-sources :update-dynamic-data-source
+   :external-data-source
    :chart :area-chart :bar-chart :bubble-chart
    :candlestick-chart :candlestick-chart
    :column-chart :combo-chart :gauge :geo-chart
    :line-chart :pie-chart :scatter-chart
    :stepped-area-chart :table :tree-map
    :motion-chart
-   :annotated-time-line :intensity-map :org-chart))
+   :annotated-time-line :intensity-map :org-chart
+   :chart->html))

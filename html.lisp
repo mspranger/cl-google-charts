@@ -54,21 +54,35 @@
                    (if (stringp (options chart))
                      (options chart)
                      (object-to-json (options chart))))))
-    (if (typep (data chart) 'dynamic-data-source)
+    (cond
+     ((typep (data chart) 'dynamic-data-source)
       ;; dynamic graph
-      (format stream "<div id='~a' ~@[style='~a'~]></div>
+      (format stream "<div id='~a'~@[ style='~a'~]></div>
                    <script type=\"text/javascript\">new google.visualization.ChartWrapper({chartType: '~a', dataSourceUrl: '~a?data-id=~a', refreshInterval: ~a~@[, options: ~a~], containerId: '~a'}).draw();</script>"
               (id chart)
               style
               chart-name
               url
               (id (data chart))
-              (refresh-interval (data chart))
+              (refresh-interval chart)
               options
-              (id chart))
-      ;; static graph
-      (format stream "<div id='~a' ~@[style='~a'~]></div><script type=\"text/javascript\">new google.visualization.~a(document.getElementById('~a')).draw(new google.visualization.DataTable(~a)~@[,~a~]);</script>"
+              (id chart)))
+     ;; external data source
+     ((typep (data chart) 'external-data-source)
+      (format stream "<div id='~a'~@[ style='~a'~]></div>
+                   <script type=\"text/javascript\">new google.visualization.ChartWrapper({chartType: '~a', dataSourceUrl: '~a'~@[, query: '~a'~]~@[, refreshInterval: ~a~]~@[, options: ~a~], containerId: '~a'}).draw();</script>"
+              (id chart)
+              style
+              chart-name
+              (source-url (data chart))
+              (query (data chart))
+              (refresh-interval chart)
+              options
+              (id chart)))
+     ;; static graph
+     (t
+      (format stream "<div id='~a'~@[ style='~a'~]></div><script type=\"text/javascript\">new google.visualization.~a(document.getElementById('~a')).draw(new google.visualization.DataTable(~a)~@[,~a~]);</script>"
               (id chart) style chart-name
               (id chart)
               (to-json (data chart))
-              options))))
+              options)))))

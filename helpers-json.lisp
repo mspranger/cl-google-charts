@@ -39,6 +39,7 @@
                           (#\return "\\r")
                           (#\tab "\\t")
                           (#\" "\\\"")
+                          (#\' "\\\'")
                           (t char)))))
 
 (defmethod to-json ((number number) &key stream)

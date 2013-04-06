@@ -23,6 +23,9 @@
 
 (in-package :cl-google-charts)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; data-table
+
 (defclass data-table ()
   ((columns :initarg :columns :accessor columns
             :initarg :description :accessor description
@@ -30,19 +33,19 @@
             :documentation "columns describe the data
                             format ((id type label role)(id-2 type-2 label-2 role-2))
                             id should be a string
-                            type 'string is default (possible values include 'string 'number 'boolean)
-                            label will be set to :id if not provided
-                            role is optional.")
+                            type 'string is default (possible values include 'string 'number 'boolean),
+                            can also be passed as keywords (useful because we don't export date)
+                            label (optional) will be set to id if not provided
+                            role (optional).")
    (rows :initarg :rows :accessor rows
          :initarg :data :accessor data 
-         :initform nil)
-   (custom-properties :initarg :custom-properties :accessor custom-properties)))
+         :initform nil)))
 
 (defmethod initialize-instance :after ((d data-table) &key columns description
                                        data rows &allow-other-keys)
   (let ((cols (or columns description))
         (rows (or rows data)))
-    ;; accept '("id-1" "id-2") as columns
+    ;; accepts '("id-1" "id-2") as columns or as first row
     (cond
      ;; passed list of strings as columns
      ((stringp (car cols))
@@ -72,6 +75,8 @@
                                   'number)
                                  ((typep e 'boolean)
                                   'boolean)
+                                 ((and (listp e)(cdr (assoc :year e)))
+                                  'date)
                                  (t (error "unknown data type")))
                            id)))
       (setf (rows d)(cdr rows)))
@@ -112,39 +117,59 @@
           (loop
            for row in (rows table)
            collect
-           (format nil "{c:[~{{v: ~a}~^,~}]}"
+           (format nil "{c:[~{~a~^,~}]}" ;; 
                    (loop
                     for column in (columns table)
                     for entry in row
                     for type = (second column)
-                    if (member type '(string number boolean))
-                    collect (to-json entry)
-                    else if (member type '(date date-time time-of-dat))
+                    if (and (member type '(string number boolean :string :number :boolean))
+                            (atom entry))
+                    collect (format nil "{v:~a}" (to-json entry))
+                    else if (and (member type '(string number boolean :string :number :boolean))
+                                 (listp entry)
+                                 (first entry))
+                    collect (format nil "{v:~a,~@[f:~a~]}"
+                                    (to-json (car entry))
+                                    (and (cdr entry) (to-json (cdr entry))))
+                    else if (and (member type '(date :date) :test 'equalp)
+                                 (cdr (assoc :year entry)))
                     collect
                     (format nil
-                            "'Date(~a,~a,~a~@[,~a~]~@[,~a~]~@[,~a~])'"
+                            "{v:'Date(~a,~a,~a~@[,~a~]~@[,~a~]~@[,~a~])'}"
                             (cdr (assoc :year entry))
                             (cdr (assoc :month entry))
                             (cdr (assoc :day entry))
                             (cdr (assoc :hour entry))
                             (cdr (assoc :second entry))
                             (cdr (assoc :millisecond entry)))
+                    else if (and (member type '(date :date))
+                                 (cdr (assoc :year (first entry))))
+                    collect
+                    (format nil
+                            "{v: 'Date(~a,~a,~a~@[,~a~]~@[,~a~]~@[,~a~])'~@[,f:'~a'~]}"
+                            (cdr (assoc :year entry))
+                            (cdr (assoc :month entry))
+                            (cdr (assoc :day entry))
+                            (cdr (assoc :hour entry))
+                            (cdr (assoc :second entry))
+                            (cdr (assoc :millisecond entry))
+                            (and (cdr entry)(to-json (cdr entry))))
+                                 
                     else
-                    do (error "data type not supported"))))))
+                    do (error "data type not supported or unknown format of data"))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; dynamic data sources
 
 (defclass dynamic-data-source (data-table)
-  ((id :initarg :id :accessor id :initform (format nil "~(~a~)" (make-id 'data-source))
+  ((id :initarg :id :accessor id 
+       :initarg :data-id :accessor data-id
+       :initform (format nil "~(~a~)" (make-id 'data-source))
        :documentation "some id used for storing and querying data. This should be a lowercase string")
    (sig :initarg :sig :accessor sig
         :initform (get-new-sig)
         :documentation "this should change everytime data is updated in the table
-                        so that a data handler can be notified of the change")
-   (refresh-interval :initarg :refresh-interval
-                     :accessor refresh-interval :initform 1
-                     :documentation "how often the server should poll for this data")))
+                        so that a data handler can be notified of the change")))
    
 (defparameter *dynamic-data-sources* (make-hash-table :test 'equalp))
 
@@ -201,23 +226,13 @@
   (setf (hunchentoot:content-type*) "application/json")
   (handle-request-dynamic-data-sources data-id tqx))
 
-;;;; ;; add example data from google
-;;;; (add-dynamic-data-source
-;;;;  (make-instance 'dynamic-data-source
-;;;;                 :id "test-data"
-;;;;                 :data '(("Task" "Hours per Day")
-;;;;                         ("work" 11)
-;;;;                         ("eat" 2)
-;;;;                         ("commute" 2)
-;;;;                         ("watch tv" 2)
-;;;;                         ("sleep" 7))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; external-data-source
 
-;;;; (add-element
-;;;;  (create-static-ggraph
-;;;;   800
-;;;;   800
-;;;;   (assqv "Cinematics" *dynamic-data-sources* :test #'equalp)))
-
-
+(defclass external-data-source ()
+  ((source-url :initarg :source-url :accessor source-url
+               :documentation "the url, e.g. http://www.google.com/fusiontables/gvizdata?tq=")
+   (query :initarg :query :accessor query
+          :documentation "the query, example SELECT Year, Austria, Bulgaria, Denmark, Greece FROM 641716")))
 
 

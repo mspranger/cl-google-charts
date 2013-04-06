@@ -44,7 +44,9 @@
                                    ("2007"  1030      540))
                            :options '(("title" . "Company Performance")
                                       ("hAxis" . (:obj ("title" . "Year")
-                                                  ("titleTextStyle" . (:obj ("color" . "red"))))))))
+                                                  ("titleTextStyle" . (:obj ("color" . "red")))))
+                                      ("height" . 400)
+                                      ("width" . 500))))
            ;; bar-chart
            "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/barchart\" target=\"_blank\">BarChart (bar-chart)</a></h2>"
            (chart->html
@@ -198,12 +200,24 @@
                                                 ("Ralph Thomas (1959)"     6.9         6.5)
                                                 ("Don Sharp (1978)"        6.5         6.4)
                                                 ("James Hawes (2008)"      4.4         6.2))
-                                       :options '(("title" . "The decline of \\'The 39 Steps\\'")
+                                       :options '(("title" . "The decline of 'The 39 Steps'")
                                                   ("vAxis" . (:obj ("title" . "Accumulated Rating")("minValue" . 0)("maxValue" . 15)))
-                                                  ("isStacked" . t))))
-
-           ;; TODO: add table
-              
+                                                  ("isStacked" . t)
+                                                  ("width" . 600)
+                                                  ("height" . 500))))
+           ;; table
+           "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/table\" target=\"_blank\">Table (table)</a></h2>"
+           (chart->html
+            (make-instance 'table
+                           :data
+                           (make-instance 'data-table
+                                          :columns '(("Name" string)("Salary" number)("Full Time Employee" boolean))
+                                          :rows '(("Mike" (10000 . "$10,000") :true)
+                                                  ("Jim" (8000 . "$8,000")  :false)
+                                                  ("Alice" (12500 . "$12,500") :true)
+                                                  ("Bob"   (7000 . "$7,000")  :true)))
+                           :options '(("width" . 800)
+                                      ("height" . 150))))
            ;; tree
            "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/treemap\" target=\"_blank\">TreeMap (tree-map)</a></h2>"
            (chart->html (make-instance 'tree-map
@@ -241,7 +255,9 @@
                                                   ("maxColor" . "#0d0")
                                                   ("headerHeight" . 15)
                                                   ("fontColor" . "black")
-                                                  ("showScale" . t))))
+                                                  ("showScale" . t)
+                                                  ("width" . 600)
+                                                  ("height" . 400))))
 
            ;; motion-chart
            "<h2><a href=\"https://developers.google.com/chart/interactive/docs/gallery/motionchart\" target=\"_blank\">MotionChart (motion-chart)</a></h2>"
@@ -290,6 +306,25 @@
                                             (((:year . 2008)(:month . 1)(:day . 6)) 33322 :undefined :undefined 39463 :undefined :undefined))))
             :style "width: 700px; height: 240px;"))))
  
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; export external-data-source
+;; creates an html file called test.html (adapt as suited)
+
+(with-open-file (stream "test.html" :direction :output
+                        ;; :if-exists :overwrite
+                        :if-does-not-exist :create)
+  (format stream "<html><head>~a</head><body>~{~a~}</body></html>"
+          (get-head-html)
+          (list
+           ;; external data source
+           "<h2><a href=\"https://developers.google.com/chart/interactive/docs/fusiontables\" target=\"_blank\">Fusion Tables Example</a></h2>"
+           (chart->html
+            (make-instance 'bar-chart
+                           :data (make-instance 'external-data-source
+                                                :source-url "http://www.google.com/fusiontables/gvizdata?tq="
+                                                :query "SELECT Year, Austria, Bulgaria, Denmark, Greece FROM 641716")
+                           :options '(("width" . "600")
+                                      ("height" . "600")))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; export dynamic charts 

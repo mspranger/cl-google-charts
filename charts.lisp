@@ -35,7 +35,10 @@
     :initarg :data :accessor data
     :initarg :data-source :accessor data-source 
     :initform nil
-    :documentation "the source of data")))
+    :documentation "the source of data")
+   (refresh-interval :initarg :refresh-interval
+                     :accessor refresh-interval :initform 1
+                     :documentation "how often the server should poll for data (only needed if data is dynamic)")))
 
 (defmethod initialize-instance :after ((chart chart) &key data-source data)
   ;; you can pass a list to data-source and this will try and make a data table
