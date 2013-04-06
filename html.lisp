@@ -57,14 +57,15 @@
     (if (typep (data chart) 'dynamic-data-source)
       ;; dynamic graph
       (format stream "<div id='~a' ~@[style='~a'~]></div>
-                   <script type=\"text/javascript\">
-                     var googleGraphApiQuery = new google.visualization.Query('~a?data-id=~a'); googleGraphApiQuery.setRefreshInterval(~a); googleGraphApiQuery.send(function (response) { if (response.isError()) { alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage()); return; } new google.visualization.~a(document.getElementById('~a')).draw(response.getDataTable()~@[,~a~]); });</script>"
-              (id chart) style url
+                   <script type=\"text/javascript\">new google.visualization.ChartWrapper({chartType: '~a', dataSourceUrl: '~a?data-id=~a', refreshInterval: ~a~@[, options: ~a~], containerId: '~a'}).draw();</script>"
+              (id chart)
+              style
+              chart-name
+              url
               (id (data chart))
               (refresh-interval (data chart))
-              chart-name
-              (id chart)
-              options)
+              options
+              (id chart))
       ;; static graph
       (format stream "<div id='~a' ~@[style='~a'~]></div><script type=\"text/javascript\">new google.visualization.~a(document.getElementById('~a')).draw(new google.visualization.DataTable(~a)~@[,~a~]);</script>"
               (id chart) style chart-name
