@@ -49,7 +49,7 @@
     (cond
      ;; passed list of strings as columns
      ((stringp (car cols))
-      (assert (= (length cols) (first rows)))
+      (assert (= (length cols) (length (first rows))))
       (setf (columns d)
             (loop
              for c in cols
@@ -122,14 +122,15 @@
                     for column in (columns table)
                     for entry in row
                     for type = (second column)
-                    if (and (member type '(string number boolean :string :number :boolean))
+                    if (and (member type '(string number boolean :string :number :boolean
+                                                  tooltip :tooltip))
                             (atom entry))
-                    collect (format nil "{v:~a}" (to-json entry))
+                    collect (format nil "{v:~a}" (if entry (to-json entry) "null"))
                     else if (and (member type '(string number boolean :string :number :boolean))
                                  (listp entry)
                                  (first entry))
                     collect (format nil "{v:~a,~@[f:~a~]}"
-                                    (to-json (car entry))
+                                    (format nil "{v:~a}" (if entry (to-json entry) "null"))
                                     (and (cdr entry) (to-json (cdr entry))))
                     else if (and (member type '(date :date) :test 'equalp)
                                  (cdr (assoc :year entry)))
