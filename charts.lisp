@@ -99,12 +99,3 @@
 
 (defclass intensity-map (chart)
   ())
-
-;;;; (make-id)
-;;;; (jsown::object-to-json '(("theme" . "test")
-;;;;                          ("chartArea.top" . 12)
-;;;;                          ("colors" . ("red" "blue"))
-;;;;                          ("enableInteractivity" . t)
-;;;;                          ("hAxis.textStyle" . (:obj
-;;;;                                                ("color" . "red")
-;;;;                                                ("fontName" . "arial")))))
